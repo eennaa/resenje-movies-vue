@@ -75,6 +75,7 @@
       </b-button>
     </b-form>
     <div>List of Movies</div>
+    <div>Selected: {{ selectedMoviesCounter }}</div>
     <movie-search
       @search-term-change="onSearchTermChanged"
     />
@@ -83,6 +84,7 @@
         v-for="movie in movies"
         :key="movie.id"
         :movie="movie"
+        @on-selected-movie="onSelectedMovie"
       />
 
       <div v-if="!movies.length">
@@ -106,6 +108,7 @@ export default {
   data() {
     return {
       movies: [],
+      selectedMoviesIds: [],
       movieForm: {
         title: '',
         director: '',
@@ -125,6 +128,17 @@ export default {
         .then(({ data }) => {
           this.movies = data
         })
+    },
+    onSelectedMovie(movie) {
+      if (this.selectedMoviesIds.indexOf(movie.id) > -1) {
+        return;
+      }
+      this.selectedMoviesIds.push(movie.id)
+    }
+  },
+  computed: {
+    selectedMoviesCounter() {
+      return this.selectedMoviesIds.length
     }
   },
   beforeRouteEnter(to, from, next) {
