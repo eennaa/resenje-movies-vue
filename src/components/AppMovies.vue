@@ -3,6 +3,7 @@
     <h3>Store Movie</h3>
     <b-form
       @submit="storeMovie"
+      v-if="false"
     >
       <b-form-group
         label="Title:"
@@ -74,6 +75,9 @@
       </b-button>
     </b-form>
     <div>List of Movies</div>
+    <movie-search
+      @search-term-change="onSearchTermChanged"
+    />
     <div class="container">
       <movie-row
         v-for="movie in movies"
@@ -87,11 +91,13 @@
 <script>
 import MoviesService from './../services/MoviesService'
 import MovieRow from './MovieRow.vue'
+import MovieSearch from './MovieSearch.vue'
 
 export default {
   name: 'AppMovies',
   components: {
-    MovieRow
+    MovieRow,
+    MovieSearch
   },
   data() {
     return {
@@ -109,6 +115,12 @@ export default {
   methods: {
     storeMovie() {
       MoviesService.store(this.movieForm)
+    },
+    onSearchTermChanged(term) {
+      MoviesService.index(term)
+        .then(({ data }) => {
+          this.movies = data
+        })
     }
   },
   beforeRouteEnter(to, from, next) {
