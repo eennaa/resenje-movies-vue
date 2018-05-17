@@ -1,7 +1,7 @@
 <template>
   <div
-    class="row"
-    :class="{ 'highlighted': selected }"
+    class="row p-2 mb-1"
+    :class="{ 'bg-dark text-white': selected }"
   >
     <div class="col-sm" v-text="movie.id"></div>
     <div class="col-sm" v-text="movie.title"></div>
@@ -43,8 +43,3 @@ export default {
 }
 </script>
 
-<style>
-.highlighted {
-  background: gray;
-}
-</style>
