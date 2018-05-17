@@ -7,12 +7,14 @@
     />
 
     <div class="pt-3">
-      <div class="row mb-2">
+      <div
+        class="row mb-2"
+        v-if="movies.length"
+      >
         <div class="col-md">
           <b-badge
             pill
             variant="primary"
-            v-if="movies.length"
           >
             Selected: {{ selectedMoviesCounter }}
           </b-badge>
@@ -67,11 +69,17 @@
       </div>
 
       <movie-row
-        v-for="movie in movies"
+        v-for="movie in visibleCollectionOfMovies"
         :key="movie.id"
         :movie="movie"
         :selected-movies-ids="selectedMoviesIds"
         @on-selected-movie="onSelectedMovie"
+      />
+
+      <MoviePaginator
+        :number-of-pages="totalNumberOfPages"
+        :current-page="currentPage"
+        @selected-page="changeCurrentPage"
       />
 
       <b-alert
@@ -90,18 +98,35 @@ import MoviesService from './../services/MoviesService'
 import MovieRow from './MovieRow.vue'
 import MovieSearch from './MovieSearch.vue'
 import MovieForm from './MovieForm.vue'
+import MoviePaginator from './MoviePaginator.vue'
 
 export default {
   name: 'AppMovies',
   components: {
     MovieRow,
     MovieSearch,
-    MovieForm
+    MovieForm,
+    MoviePaginator
   },
   data() {
     return {
       movies: [],
-      selectedMoviesIds: []
+      selectedMoviesIds: [],
+      currentPage: 1
+    }
+  },
+  computed: {
+    selectedMoviesCounter() {
+      return this.selectedMoviesIds.length
+    },
+    totalNumberOfPages() {
+      return Math.ceil(this.movies.length / 5)
+    },
+    visibleCollectionOfMovies() {
+      let bottomIndexLimit = (this.currentPage - 1) * 5
+      let topIndexLimit = bottomIndexLimit + 5
+      return this.movies.filter(
+        (movie, index) => index >= bottomIndexLimit && index < topIndexLimit)
     }
   },
   methods: {
@@ -132,11 +157,9 @@ export default {
         return movie1[prop] >= movie2[prop] ?
           orderCoefficient : -orderCoefficient
       })
-    }
-  },
-  computed: {
-    selectedMoviesCounter() {
-      return this.selectedMoviesIds.length
+    },
+    changeCurrentPage(page) {
+      this.currentPage = page;
     }
   },
   beforeRouteEnter(to, from, next) {
