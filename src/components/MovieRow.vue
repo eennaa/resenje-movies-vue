@@ -11,6 +11,7 @@
     <div class="col-sm" v-text="movie.duration"></div>
     <div class="col-sm">
       <b-button
+        size="sm"
         type="submit"
         variant="primary"
         @click="onSelected">
@@ -27,16 +28,21 @@ export default {
     movie: {
       type: Object,
       required: true
+    },
+    selectedMoviesIds: {
+      type: Array,
+      required: true,
+      default: () => []
     }
   },
-  data() {
-    return {
-      selected: false
+  computed: {
+    selected() {
+      return this.selectedMoviesIds
+        .indexOf(this.movie.id) > -1;
     }
   },
   methods: {
     onSelected() {
-      this.selected = true
       this.$emit('on-selected-movie', this.movie)
     }
   }
