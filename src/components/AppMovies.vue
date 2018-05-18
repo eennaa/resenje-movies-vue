@@ -1,11 +1,5 @@
 <template>
   <div class="container">
-
-    <movie-search
-      @search-term-change="onSearchTermChanged"
-      class="mt-4"
-    />
-
     <div class="pt-3">
       <div
         class="row mb-2"
@@ -17,6 +11,12 @@
             variant="primary"
           >
             Selected: {{ selectedMoviesCounter }}
+          </b-badge>
+          <b-badge
+            pill
+            variant="primary"
+          >
+            Magic Number: {{ magicNumber }}
           </b-badge>
         </div>
         <div class="col-md">
@@ -100,6 +100,9 @@ import MovieSearch from './MovieSearch.vue'
 import MovieForm from './MovieForm.vue'
 import MoviePaginator from './MoviePaginator.vue'
 
+
+import { mapGetters, mapMutations, mapActions } from 'vuex'
+
 export default {
   name: 'AppMovies',
   components: {
@@ -110,37 +113,53 @@ export default {
   },
   data() {
     return {
-      movies: [],
+      // movies: [], now we have movies as computed prop
       selectedMoviesIds: [],
       currentPage: 1
     }
   },
   computed: {
+    ...mapGetters({
+      magicNumber: 'getCounter',
+      currentTerm: 'getSearchTerm',
+      movies: 'getMovies'
+    }),
     selectedMoviesCounter() {
       return this.selectedMoviesIds.length
     },
     totalNumberOfPages() {
       return Math.ceil(this.movies.length / 5)
     },
+    filteredMovies() {
+      return this.movies.filter((movie) => {
+        return movie.title.toLowerCase()
+          .indexOf(
+            this.currentTerm.toLowerCase()
+          ) > -1
+      })
+    },
     visibleCollectionOfMovies() {
       let bottomIndexLimit = (this.currentPage - 1) * 5
       let topIndexLimit = bottomIndexLimit + 5
-      return this.movies.filter(
+      return this.filteredMovies.filter(
         (movie, index) => index >= bottomIndexLimit && index < topIndexLimit)
     }
   },
   methods: {
+    ...mapMutations([
+      'incrementCounter'
+    ]),
+    ...mapActions([
+      'incrementCounterAction',
+      'fetchMovies'
+    ]),
     storeMovie() {
       MoviesService.store(this.movieForm)
     },
-    onSearchTermChanged(term) {
-      MoviesService.index(term)
-        .then(({ data }) => {
-          this.movies = data
-        })
-    },
-    onSelectedMovie(movie) {
-      if (this.selectedMoviesIds.indexOf(movie.id) > -1) {
+    onSelectedMovie(movie, isSelected) {
+      if (!isSelected) {
+        let movieIndex = this.selectedMoviesIds.indexOf(movie.id);
+        this.selectedMoviesIds.splice(movieIndex, 1);
         return;
       }
       this.selectedMoviesIds.push(movie.id)
@@ -162,13 +181,20 @@ export default {
       this.currentPage = page;
     }
   },
+  // beforeRouteEnter hook will block component init if we don't call
+  // next callback in it :)
   beforeRouteEnter(to, from, next) {
-    MoviesService.index().then(({ data }) => {
-      next((context) => {
-        context.movies = data.map(movie =>
-          Object.assign(movie, { duration: parseFloat(movie.duration) }));
-      })
-    })
+    // MoviesService.index().then(({ data }) => {
+    //   next((context) => {
+    //     context.movies = data.map(movie =>
+    //       Object.assign(movie, { duration: parseFloat(movie.duration) }));
+    //   })
+    // })
+    next()
+  },
+  created() {
+    this.fetchMovies();
+    this.incrementCounterAction()
   }
 }
 </script>
